@@ -1,0 +1,5 @@
+services:
+    wampsv:
+        class: Realtimedraw\ServerBundle\Server
+        arguments:
+            - @doctrine.orm.default_entity_manager
