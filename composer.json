@@ -20,7 +20,8 @@
         "sensio/generator-bundle": "~2.3",
         "incenteev/composer-parameter-handler": "~2.0",
         "cboden/Ratchet": "0.3.*",
-        "friendsofsymfony/user-bundle": "~2.0@dev"
+        "friendsofsymfony/user-bundle": "~2.0@dev",
+        "facebook/php-sdk-v4" : "4.0.*"
     },
     "scripts": {
         "post-install-cmd": [
