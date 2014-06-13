@@ -17,7 +17,7 @@ class WampServerCommand extends ContainerAwareCommand {
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $wampsv = $this->getContainer()->get('wampsv');
-        $server = new App('192.168.1.3', 8080, '0.0.0.0');
+        $server = new App('86.127.137.166', 2014, '0.0.0.0');
         $server->route('/pubsub', $wampsv, array('*'));
         $server->run();
     }

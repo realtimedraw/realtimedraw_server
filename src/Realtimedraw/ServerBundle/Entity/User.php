@@ -2,7 +2,6 @@
 namespace Realtimedraw\ServerBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -11,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  *  @ORM\UniqueConstraint(name="uk_fb_id", columns={"facebook_id"})
  * })
  */
-class User extends  BaseUser{
+class User{
     /**
      * @ORM\Id
      * @ORM\Column(type="integer")
@@ -20,7 +19,7 @@ class User extends  BaseUser{
     protected $id;
 
     /**
-     * @ORM\Column(type="integer", name="facebook_id")
+     * @ORM\Column(type="bigint", name="facebook_id")
      */
     private $facebookId;
 
@@ -37,10 +36,94 @@ class User extends  BaseUser{
 
     public function __construct($facebookId)
     {
-        parent::__construct();
-        // your own logic
         $this->drawings = new ArrayCollection();
         $this->sharedDrawings = new ArrayCollection();
         $this->facebookId = $facebookId;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFacebookId()
+    {
+        return $this->facebookId;
+    }
+
+    /**
+     * @param mixed $facebookId
+     */
+    public function setFacebookId($facebookId)
+    {
+        $this->facebookId = $facebookId;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDrawings()
+    {
+        return $this->drawings;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSharedDrawings()
+    {
+        return $this->sharedDrawings;
+    }
+
+    /**
+     * Add drawings
+     *
+     * @param \Realtimedraw\ServerBundle\Entity\Drawing $drawings
+     * @return User
+     */
+    public function addDrawing(\Realtimedraw\ServerBundle\Entity\Drawing $drawings)
+    {
+        $this->drawings[] = $drawings;
+
+        return $this;
+    }
+
+    /**
+     * Remove drawings
+     *
+     * @param \Realtimedraw\ServerBundle\Entity\Drawing $drawings
+     */
+    public function removeDrawing(\Realtimedraw\ServerBundle\Entity\Drawing $drawings)
+    {
+        $this->drawings->removeElement($drawings);
+    }
+
+    /**
+     * Add sharedDrawings
+     *
+     * @param \Realtimedraw\ServerBundle\Entity\Drawing $sharedDrawings
+     * @return User
+     */
+    public function addSharedDrawing(\Realtimedraw\ServerBundle\Entity\Drawing $sharedDrawings)
+    {
+        $this->sharedDrawings[] = $sharedDrawings;
+
+        return $this;
+    }
+
+    /**
+     * Remove sharedDrawings
+     *
+     * @param \Realtimedraw\ServerBundle\Entity\Drawing $sharedDrawings
+     */
+    public function removeSharedDrawing(\Realtimedraw\ServerBundle\Entity\Drawing $sharedDrawings)
+    {
+        $this->sharedDrawings->removeElement($sharedDrawings);
     }
 }

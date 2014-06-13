@@ -19,6 +19,7 @@ class Server implements WampServerInterface
     protected $em;
     private $facebook_appID = '566601083457511';
     private $facebook_appSecret = '0c0f6192726dca65686aa75aea292d32';
+    private $directory = 'uploads/drawings';
 
     public function __construct(EntityManager $em)
     {
@@ -34,26 +35,18 @@ class Server implements WampServerInterface
 
     public function onCall(Conn $conn, $id, $topic, array $params)
     {
-        /** @var WampConnection $conn $v */
-        $v = strpos($topic, '/', 1);
-        $category = substr($topic, 1, $v - 1);
-        $element = substr($topic, $v + 1);
-        switch ($category) {
-            case 'command':
-                $command_method = 'command_'.$element;
-                if (!method_exists($this, $command_method)) {
-                    $conn->callError($id, $topic, 'unknown command');
-                } else {
-                    try{
-                        $result = $this->$command_method();
-                        $conn->callResult($result);
-                    }catch (Exception $ex){
-                        $conn->callError($id, $topic, 'error occurred', $ex->getMessage());
-                    }
-                }
-                break;
+        /** @var WampConnection $conn */
+        $command_method = 'command_' . $topic;
+        if (!method_exists($this, $command_method)) {
+            $conn->callError($id, $topic, 'unknown command');
+        } else {
+            try {
+                $result = $this->$command_method($params);
+                $conn->callResult($id, array($result));
+            } catch (Exception $ex) {
+                $conn->callError($id, $topic, 'error occurred', $ex->getMessage());
+            }
         }
-        $conn->callError($id, $topic, 'RPC not supported on this demo');
     }
 
     // No need to anything, since WampServer adds and removes subscribers to Topics automatically
@@ -78,16 +71,18 @@ class Server implements WampServerInterface
     {
     }
 
-    protected function command_auth($facebookAccessToken)
+    protected function command_auth(array $params)
     {
+        $facebookAccessToken = $params[0];
         try {
             $facebook_user = $this->getFacebookUser($facebookAccessToken);
-            return $this->getUser($facebook_user)->getId();
+            $user = $this->getUser($facebook_user);
+            return $user->getId();
         } catch (FacebookRequestException $ex) {
-            return $ex->getMessage();
+            throw $ex;
         } catch (\Exception $ex) {
-            if($ex->getMessage() != 'user not found')
-                return $ex->getMessage();
+            if ($ex->getMessage() != 'user not found')
+                throw $ex;
             $user = new User($facebook_user->getId());
             $this->em->persist($user);
             $this->em->flush();
@@ -102,7 +97,7 @@ class Server implements WampServerInterface
         $drawing = new Drawing($user->getId());
         $this->em->persist($drawing);
         $this->em->flush();
-        file_put_contents('uploads/drawings/id' + $drawing->getId(), $uploadedDrawing);
+        file_put_contents($this->directory . '/id' + $drawing->getId(), $uploadedDrawing);
         return $drawing->getId();
     }
 
@@ -114,7 +109,7 @@ class Server implements WampServerInterface
         $drawing = $this->em->getRepository('RealtimedrawServerBundle:Drawing')->find($drawingId);
         if (!$drawing->getAllowedUsers()->exists($user))
             throw new \Exception('not allowed');
-        return file_get_contents('uploads/drawings/id' + $drawing->getId());
+        return file_get_contents($this->directory . '/id' + $drawing->getId());
     }
 
     /**
@@ -139,7 +134,7 @@ class Server implements WampServerInterface
     protected function getUser(GraphUser $facebook_user)
     {
         $user = $this->em->getRepository('RealtimedrawServerBundle:User')->findOneByFacebookId($facebook_user->getId());
-        if($user)
+        if ($user)
             return $user;
         throw new \Exception('user not found');
     }
